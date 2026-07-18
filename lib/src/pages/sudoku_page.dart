@@ -5,16 +5,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/difficulty.dart';
-import '../models/history_entry.dart';
 
 class SudokuPage extends StatefulWidget {
   final Difficulty difficulty;
-  final void Function(HistoryEntry entry) onAddHistory;
 
   const SudokuPage({
     super.key,
     required this.difficulty,
-    required this.onAddHistory,
   });
 
   @override
@@ -22,6 +19,8 @@ class SudokuPage extends StatefulWidget {
 }
 
 class _SudokuPageState extends State<SudokuPage> {
+  static const String _cellNumberFontFamily = 'monospace';
+
   static const Map<Difficulty, List<List<int>>> _puzzles = {
     Difficulty.easy: [
       [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -359,24 +358,6 @@ class _SudokuPageState extends State<SudokuPage> {
     return true;
   }
 
-  void _addHistory({
-    required String result,
-    int? correctCount,
-    int? totalCount,
-    double? accuracy,
-  }) {
-    widget.onAddHistory(
-      HistoryEntry(
-        difficulty: widget.difficulty,
-        result: result,
-        time: DateTime.now(),
-        correctCount: correctCount,
-        totalCount: totalCount,
-        accuracy: accuracy,
-      ),
-    );
-  }
-
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -491,12 +472,6 @@ class _SudokuPageState extends State<SudokuPage> {
       _completed = true;
       _solved = true;
       _stopTimer();
-      _addHistory(
-        result: '完了',
-        correctCount: correctCount,
-        totalCount: editableCount,
-        accuracy: accuracy,
-      );
     });
 
     await _showActionMessageWindow(
@@ -553,6 +528,24 @@ class _SudokuPageState extends State<SudokuPage> {
     );
   }
 
+  TextStyle _numberTextStyle({
+    double fontSize = 24,
+    Color color = Colors.black,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    double? decorationThickness,
+  }) {
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.bold,
+      fontFamily: _cellNumberFontFamily,
+      color: color,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationThickness: decorationThickness,
+    );
+  }
+
   Widget _buildCell(int row, int col) {
     final isFixed = _fixed[row][col];
     final hasError = _hasError[row][col];
@@ -580,15 +573,10 @@ class _SudokuPageState extends State<SudokuPage> {
           color: Colors.indigo.shade50,
         ),
         child: SizedBox.expand(
-          child: FittedBox(
-            fit: BoxFit.contain,
+          child: Center(
             child: Text(
               _board[row][col].toString(),
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-              ),
+              style: _numberTextStyle(),
             ),
           ),
         ),
@@ -619,13 +607,8 @@ class _SudokuPageState extends State<SudokuPage> {
                     ? Center(
                         child: Text(
                           _board[row][col].toString(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
-                            color: hasError
-                                ? Colors.red.shade800
-                                : Colors.black,
+                          style: _numberTextStyle(
+                            color: hasError ? Colors.red.shade800 : Colors.black,
                           ),
                         ),
                       )
@@ -669,7 +652,7 @@ class _SudokuPageState extends State<SudokuPage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
+                      fontFamily: _cellNumberFontFamily,
                       color: hasError ? Colors.red.shade800 : Colors.black,
                     ),
                     maxLength: 1,
@@ -732,12 +715,7 @@ class _SudokuPageState extends State<SudokuPage> {
       return Center(
         child: Text(
           answerValue.toString(),
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'monospace',
-            color: Colors.black,
-          ),
+          style: _numberTextStyle(),
         ),
       );
     }
@@ -746,10 +724,7 @@ class _SudokuPageState extends State<SudokuPage> {
       return Center(
         child: Text(
           answerValue.toString(),
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'monospace',
+          style: _numberTextStyle(
             color: Colors.red.shade800,
           ),
         ),
@@ -762,10 +737,8 @@ class _SudokuPageState extends State<SudokuPage> {
         children: [
           Text(
             enteredValue.toString(),
-            style: TextStyle(
+            style: _numberTextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
               color: Colors.red.shade700,
               decoration: TextDecoration.lineThrough,
               decorationColor: Colors.red.shade700,
@@ -774,10 +747,8 @@ class _SudokuPageState extends State<SudokuPage> {
           ),
           Text(
             answerValue.toString(),
-            style: TextStyle(
+            style: _numberTextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
               color: Colors.red.shade800,
             ),
           ),
